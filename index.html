@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.46.1">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.46.1">
+<link rel="icon" type="image/png" href="./icon.png?v=1.47.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.47.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -310,6 +310,10 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .catalog-row.subcategory{padding-left:28px}
 .catalog-row.subcategory .article-open strong::before{content:'— ';color:var(--mu)}
 
+/* Avís per activar les notificacions (només l'administrador principal) */
+.push-notice{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--draft-highlight);font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.push-notice button{min-height:36px;padding-block:2px}
+
 .worker-profiles .worker-profile-item{border-top:1px solid var(--border);padding:10px 0}
 .worker-profile-item>summary,.worker-profile-inactive>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .worker-profile-item>summary::before,.worker-profile-inactive>summary::before{content:"+"}
@@ -391,12 +395,12 @@ label.req-mark::after{margin-left:0}
 .topbar .entorn-proves{color:var(--red);letter-spacing:.04em}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="gesto-version" content="1.46.1">
+<meta name="gesto-version" content="1.47.0">
 </head>
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.46.1<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.47.0<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -1418,6 +1422,70 @@ document.addEventListener('close',() => { if (refreshWaiting) setTimeout(refresh
 setInterval(checkDraft,3000);
 setInterval(refreshFromServer,60000);
 
+// ---- Avisos al mòbil (src/push.mjs i sw.js) ----
+// De moment només per a l'administrador principal: l'avisa quan algú que no és administrador afegeix articles a «Nova comanda».
+// A l'iPhone només funcionen si l'app s'obre des de la icona de la pantalla d'inici.
+// pushState: '' (no s'ensenya res), 'install' (cal afegir-la a la pantalla d'inici), 'off', 'denied' o 'on'.
+let pushState = '';
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const pushKeyBytes = key => Uint8Array.from(atob(key.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((key.length+3)%4)),char => char.charCodeAt(0));
+async function initPush() {
+  if (!request || !data?.me?.principal) return;
+  if (!pushSupported()) {
+    pushState = /iPhone|iPad/.test(navigator.userAgent) && !standalone() ? 'install' : '';
+  } else {
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js');
+      const subscription = Notification.permission === 'granted' ? await registration.pushManager.getSubscription() : null;
+      // Es torna a enviar al servidor cada vegada (per si l'adreça ha canviat o s'havia esborrat).
+      if (subscription) await api({action:'pushSubscribe',subscription:subscription.toJSON()});
+      pushState = subscription ? 'on' : Notification.permission === 'denied' ? 'denied' : 'off';
+    } catch {
+      pushState = Notification.permission === 'denied' ? 'denied' : 'off';
+    }
+  }
+  if (section === 'order' && !typing() && !document.querySelector('dialog[open]')) render();
+}
+async function enablePush(button) {
+  // La petició de permís ha d'anar just després del toc (l'iPhone ho exigeix).
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    pushState = permission === 'denied' ? 'denied' : 'off';
+    notify('No s’han activat els avisos.',true);
+    render();
+    return;
+  }
+  button.disabled = true;
+  try {
+    const registration = await navigator.serviceWorker.register('./sw.js');
+    await navigator.serviceWorker.ready;
+    const {publicKey} = await api({action:'pushKey'});
+    const subscription = await registration.pushManager.getSubscription() ||
+      await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushKeyBytes(publicKey)});
+    await api({action:'pushSubscribe',subscription:subscription.toJSON(),test:true});
+    pushState = 'on';
+    notify('Avisos activats. T’ha d’arribar un avís de prova.');
+  } catch (error) {
+    notify('No s’han pogut activar els avisos. '+(error.message || ''),true);
+  } finally {
+    button.disabled = false;
+    render();
+  }
+}
+function pushNotice() {
+  if (pushState === 'install') return '<p class="push-notice">🔔 Per rebre un avís quan algú afegeixi articles, obre l’app des de la icona de la pantalla d’inici (Safari → Compartir → «Afegeix a la pantalla d’inici»).</p>';
+  if (pushState === 'off') return '<p class="push-notice">🔔 Vols rebre un avís quan algú afegeixi articles a la comanda? <button type="button" id="push-enable">Activa els avisos</button></p>';
+  if (pushState === 'denied') return '<p class="push-notice">🔔 Els avisos estan bloquejats. Activa’ls a Configuració → Notificacions → GestoCatalog.</p>';
+  return '';
+}
+navigator.serviceWorker?.addEventListener('message',event => {
+  if (event.data?.type !== 'open-section' || !data) return;
+  section = 'order';
+  render();
+});
+if (new URLSearchParams(location.search).get('section') === 'order') section = 'order';
+
 // Versió nova: en obrir l'app, en tornar-hi i cada 5 minuts es mira version.json (el genera build.mjs en publicar).
 // Si n'hi ha una de més nova, es recarrega la pàgina (amb ?v= perquè no es faci servir la còpia guardada del navegador).
 // S'espera si s'està desant, si hi ha una fitxa oberta o si s'està escrivint. Només un intent per versió (sessionStorage).
@@ -1994,6 +2062,7 @@ function order() {
   const draft = data.draft.lines;
   return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order','')+
     // «Només la comanda» i «Replega-ho tot», l'un al costat de l'altre a la mateixa fila.
+    pushNotice()+
     listTools('order','<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+'<div id="list-order">'+articleList('order')+'</div>'+
     // Només els administradors envien la comanda als proveïdors; la resta només hi afegeixen articles.
     (draft.length && data.me?.admin ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
@@ -3394,6 +3463,8 @@ document.addEventListener('click',async event => {
     const removed = data.draft.lines[Number(target.remove)]?.article;
     await saveDraft(data.draft.lines.filter((_,index) => index !== Number(target.remove)),button);
     if (removed) focusRowToggle(removed);
+  } else if (button.id === 'push-enable') {
+    await enablePush(button);
   } else if (button.id === 'generate') {
     // Primer es pregunta de quins proveïdors es genera la comanda.
     await flushDraft();
@@ -3862,6 +3933,7 @@ if (!initialData) setSync('Carregant…');
   setSync(readyStatus);
   notify('');
   render();
+  initPush();
 }).catch(error => {
   setSync('Sense connexió');
   notify('No s’han pogut carregar les dades. '+error.message,true);
