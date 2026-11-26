@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.46.0">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.46.0">
+<link rel="icon" type="image/png" href="./icon.png?v=1.46.1">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.46.1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -391,12 +391,12 @@ label.req-mark::after{margin-left:0}
 .topbar .entorn-proves{color:var(--red);letter-spacing:.04em}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="gesto-version" content="1.46.0">
+<meta name="gesto-version" content="1.46.1">
 </head>
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.46.0<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.46.1<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -1382,9 +1382,11 @@ async function refreshFromServer() {
   if (!canRefresh() || refreshRunning) return;
   if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
   refreshRunning = true;
+  const edits = draftEdits;
   try {
     const fresh = await api();
-    if (!canRefresh()) return;
+    // Si mentrestant s'ha tocat la comanda en aquest mòbil, aquestes dades ja són velles.
+    if (!canRefresh() || edits !== draftEdits) return;
     if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
     refreshWaiting = false;
     if (JSON.stringify(fresh) === JSON.stringify(data)) return;
@@ -1402,8 +1404,9 @@ async function checkDraft() {
   if (refreshWaiting) return refreshFromServer();
   if (!canRefresh() || refreshRunning) return;
   try {
+    const edits = draftEdits;
     const {revision} = await api({action:'draftRevision'});
-    if (data && revision !== data.draft.revision) await refreshFromServer();
+    if (data && edits === draftEdits && revision !== data.draft.revision) await refreshFromServer();
   } catch {
     // Sense connexió: es tornarà a provar.
   }
@@ -2236,8 +2239,32 @@ function openGenerateChoice() {
 // L'esborrany canvia a la pantalla de seguida i es desa al servidor en segon pla (sense tornar a carregar totes les dades).
 let draftPending = null;
 let draftSending = null;
+// «Nova comanda» és compartida: si mentrestant algú altre l'ha canviat (409), no es perd el canvi propi.
+// Cada canvi es guarda com a operacions (afegeix/canvia/treu una línia) i, si hi ha conflicte,
+// s'apliquen sobre la versió del servidor i es torna a desar.
+let draftOps = [];
+let draftEdits = 0;
+const draftKey = line => JSON.stringify([line.article,line.supplier,line.unit]);
+function draftDiff(before, after) {
+  const old = new Map(before.map(line => [draftKey(line),line]));
+  const now = new Map(after.map(line => [draftKey(line),line]));
+  const ops = [];
+  for (const [key,line] of now) if (!old.has(key) || old.get(key).quantity !== line.quantity) ops.push({key,line});
+  for (const key of old.keys()) if (!now.has(key)) ops.push({key,line:null});
+  return ops;
+}
+function applyDraftOps(lines, ops) {
+  const result = new Map(lines.map(line => [draftKey(line),line]));
+  for (const {key,line} of ops) {
+    if (line) result.set(key,{...line}); else result.delete(key);
+  }
+  return [...result.values()];
+}
 function saveDraft(lines, button, message = '') {
-  data.draft.lines = combineDraftLines(lines);
+  const combined = combineDraftLines(lines);
+  draftOps.push(...draftDiff(data.draft.lines,combined));
+  draftEdits += 1;
+  data.draft.lines = combined;
   render();
   if (message) notify(message);
   draftPending = data.draft.lines;
@@ -2247,25 +2274,39 @@ function saveDraft(lines, button, message = '') {
 
 async function sendDraft() {
   let failures = 0;
+  let conflicts = 0;
   while (draftPending) {
     const lines = draftPending;
+    const sentOps = draftOps.length;
     draftPending = null;
     setSync('Desant…');
     try {
       await api({action:'draft',lines,revision:data.draft.revision});
       data.draft.revision += 1;
+      draftOps.splice(0,sentOps);
       failures = 0;
+      conflicts = 0;
     } catch (error) {
-      if (error.status === 409) {
-        // Un altre dispositiu ha canviat l'esborrany: es mostra el del servidor.
-        data = await api().catch(() => data);
-        render();
-        notify('L’esborrany ha canviat en un altre dispositiu. Revisa les línies i repeteix el canvi.',true);
-        draftPending = null;
-        break;
+      if (error.status === 409 && conflicts < 5) {
+        // Algú altre ha canviat la comanda alhora: es pren la del servidor, s'hi tornen a aplicar
+        // els canvis propis que encara no s'havien desat i es torna a desar (sense perdre res de ningú).
+        conflicts += 1;
+        try {
+          const fresh = await api();
+          data = fresh;
+          data.draft.lines = combineDraftLines(applyDraftOps(fresh.draft.lines,draftOps));
+          draftPending = draftOps.length ? data.draft.lines : null;
+          if (!typing() && !document.querySelector('dialog[open]')) render();
+          continue;
+        } catch {
+          draftPending = draftPending || lines;
+          await new Promise(resolve => setTimeout(resolve,3000));
+          continue;
+        }
       }
       if (error.status >= 400 && error.status < 500) {
         data = await api().catch(() => data);
+        draftOps = [];
         render();
         notify('No s’ha pogut desar l’últim canvi: '+error.message,true);
         draftPending = null;
