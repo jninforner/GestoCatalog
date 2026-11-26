@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.44.0">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.44.0">
+<link rel="icon" type="image/png" href="./icon.png?v=1.45.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.45.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -146,6 +146,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-editor label:nth-child(3),.order-editor .actions,.order-editor [data-editor-error]{grid-column:1/-1}
 
 .order-list-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;min-width:0;flex:1 1 100%}
+.order-list-filters:not(:has(.list-mode)){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .order-list-filters label{width:100%}
 .order-list-filters select{height:44px;min-height:44px}
 
@@ -156,7 +157,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-lines .order-lookup{position:sticky;top:0;z-index:4;margin:10px 0 0;padding:6px 0;background:inherit}
 .order-lines.is-searching .order-lookup{box-shadow:0 6px 8px -6px #11183140}
 .order-lines.is-searching [id^=list-]{min-height:100vh}
-.order-lines.hide-filters .order-list-filters{display:none}
+.order-lines.hide-filters .order-list-filters,.order-lines.hide-filters .list-tools{display:none}
 .order-lines .order-list-filters{margin-top:6px}
 .list-tools:not(:has(button:not([hidden]))){display:none}
 /* Cerca comuna de Nova comanda i Articles */
@@ -271,6 +272,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
   .list-tools [data-new-article]{grid-column:1;grid-row:1}
   .list-tools .group-toggle{grid-column:2;grid-row:1;margin-left:0}
   .list-tools #select-visible-articles{grid-column:1/-1}
+  .list-tools .list-mode{grid-column:1;grid-row:1;justify-self:stretch;justify-content:center}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
@@ -295,6 +297,9 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Diàleg «A qui ho demanem?»: un botó per proveïdor */
 .supplier-choice{display:grid;gap:8px;margin-top:10px}
 .supplier-choice button{width:100%;justify-content:flex-start;min-height:48px}
+.generate-choice{display:grid;gap:4px;margin-top:10px}
+.generate-choice label{min-height:44px;display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
+.generate-choice input{width:22px;height:22px;margin:0}
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
 /* Paperera */
 .swipe.dragging{position:relative;z-index:2;overflow:visible}
@@ -390,7 +395,7 @@ label.req-mark::after{margin-left:0}
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.44.0<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.45.0<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -1952,9 +1957,9 @@ function matchesArticleName(article, query, exact = false) {
 
 function order() {
   const draft = data.draft.lines;
-  return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order',
-    '<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+
-    listTools('order')+'<div id="list-order">'+articleList('order')+'</div>'+
+  return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order','')+
+    // «Només la comanda» i «Replega-ho tot», l'un al costat de l'altre a la mateixa fila.
+    listTools('order','<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+'<div id="list-order">'+articleList('order')+'</div>'+
     // Només els administradors envien la comanda als proveïdors; la resta només hi afegeixen articles.
     (draft.length && data.me?.admin ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
     '</article>';
@@ -2167,6 +2172,33 @@ function openSupplierChoice(article, suppliers, searched) {
     '</div>';
   if (!dialog.open) dialog.showModal();
   dialog.querySelector('[data-choose-supplier]')?.focus();
+}
+
+// «Desa i genera els missatges»: de quins proveïdors es fa la comanda (els altres es queden a «Nova comanda»).
+function openGenerateChoice() {
+  const counts = new Map();
+  for (const line of data.draft.lines) counts.set(line.supplier,(counts.get(line.supplier) || 0)+1);
+  const suppliers = [...counts.keys()].map(id => byId('suppliers',id)).filter(Boolean)
+    .sort((a,b) => a.name.localeCompare(b.name,'ca',{sensitivity:'base'}));
+  let dialog = document.querySelector('#order-dialog');
+  if (!dialog) {
+    dialog = document.createElement('dialog');
+    dialog.id = 'order-dialog';
+    dialog.setAttribute('aria-labelledby','order-dialog-title');
+    dialog.addEventListener('close',() => { sheetId = ''; });
+    document.querySelector('#workspace').append(dialog);
+  }
+  sheetId = '';
+  dialog.innerHTML = '<div class="sheet-head"><h2 id="order-dialog-title">Genera la comanda</h2><button type="button" id="close-order-dialog" aria-label="Tanca">✕</button></div>'+
+    '<section class="sheet-part"><h3>De quins proveïdors?</h3><p class="meta">Els articles dels proveïdors que no triïs es quedaran a «Nova comanda».</p>'+
+    '<div class="generate-choice">'+suppliers.map(supplier => {
+      const count = counts.get(supplier.id);
+      return '<label><input type="checkbox" name="generate-supplier" value="'+escape(supplier.id)+'"'+(suppliers.length === 1 ? ' checked' : '')+'> '+
+        escape(supplier.name)+' <span class="meta">('+count+(count === 1 ? ' article' : ' articles')+')</span></label>';
+    }).join('')+'</div></section>'+
+    '<div class="actions sheet-foot"><button type="button" class="primary" id="generate-selected">Desa i genera els missatges</button></div>';
+  if (!dialog.open) dialog.showModal();
+  dialog.querySelector('[name="generate-supplier"]')?.focus();
 }
 
 // L'esborrany canvia a la pantalla de seguida i es desa al servidor en segon pla (sense tornar a carregar totes les dades).
@@ -3290,8 +3322,15 @@ document.addEventListener('click',async event => {
     await saveDraft(data.draft.lines.filter((_,index) => index !== Number(target.remove)),button);
     if (removed) focusRowToggle(removed);
   } else if (button.id === 'generate') {
+    // Primer es pregunta de quins proveïdors es genera la comanda.
     await flushDraft();
-    await save({action:'order',revision:data.draft.revision}, result => {
+    openGenerateChoice();
+  } else if (button.id === 'generate-selected') {
+    const suppliers = [...button.closest('dialog').querySelectorAll('[name="generate-supplier"]:checked')].map(input => input.value);
+    if (!suppliers.length) { notify('Tria almenys un proveïdor.',true); return; }
+    button.closest('dialog').close();
+    await flushDraft();
+    await save({action:'order',revision:data.draft.revision,suppliers}, result => {
       onlyOrdered = false;
       orderCategory = '';
       orderSupplier = '';
