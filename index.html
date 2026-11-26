@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.43.0">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.43.0">
+<link rel="icon" type="image/png" href="./icon.png?v=1.44.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.44.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -390,7 +390,7 @@ label.req-mark::after{margin-left:0}
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.43.0<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.44.0<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -1363,6 +1363,52 @@ async function save(payload, done, button, success = () => 'Canvis desats.', aft
   }
 }
 
+// «Nova comanda» és compartida: els canvis fets en un altre mòbil han de sortir aquí de seguida.
+// Cada 3 segons es pregunta al servidor només el número de revisió de l'esborrany (consulta lleugera);
+// si ha canviat, es tornen a llegir totes les dades. També es fa en tornar a l'app i, per a la resta de canvis, cada minut.
+// No s'actualitza la pantalla si s'està desant alguna cosa, si hi ha una fitxa oberta o si s'està escrivint en un camp
+// (així no es perd el teclat ni el text): en aquest cas s'espera a deixar el camp o tancar la fitxa.
+let refreshWaiting = false;
+let refreshRunning = false;
+const typing = () => document.activeElement?.matches('input, textarea, select, [contenteditable]');
+const canRefresh = () => request && data && !busy && !draftPending && !draftSending && !document.hidden;
+async function refreshFromServer() {
+  if (!canRefresh() || refreshRunning) return;
+  if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
+  refreshRunning = true;
+  try {
+    const fresh = await api();
+    if (!canRefresh()) return;
+    if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
+    refreshWaiting = false;
+    if (JSON.stringify(fresh) === JSON.stringify(data)) return;
+    const scroll = scrollY;
+    data = fresh;
+    render();
+    scrollTo(0,scroll);
+  } catch {
+    // Sense connexió: es tornarà a provar.
+  } finally {
+    refreshRunning = false;
+  }
+}
+async function checkDraft() {
+  if (refreshWaiting) return refreshFromServer();
+  if (!canRefresh() || refreshRunning) return;
+  try {
+    const {revision} = await api({action:'draftRevision'});
+    if (data && revision !== data.draft.revision) await refreshFromServer();
+  } catch {
+    // Sense connexió: es tornarà a provar.
+  }
+}
+document.addEventListener('visibilitychange',() => { if (!document.hidden) refreshFromServer(); });
+addEventListener('pageshow',event => { if (event.persisted) refreshFromServer(); });
+document.addEventListener('focusout',() => setTimeout(() => { if (refreshWaiting && !typing()) refreshFromServer(); },300));
+document.addEventListener('close',() => { if (refreshWaiting) setTimeout(refreshFromServer,300); },true);
+setInterval(checkDraft,3000);
+setInterval(refreshFromServer,60000);
+
 // Camps de la fitxa d'un proveïdor, una unitat o una categoria (per crear-ne o editar-ne).
 function catalogFields(current) {
   const isSupplier = section === 'suppliers';
@@ -1909,7 +1955,8 @@ function order() {
   return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order',
     '<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+
     listTools('order')+'<div id="list-order">'+articleList('order')+'</div>'+
-    (draft.length ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
+    // Només els administradors envien la comanda als proveïdors; la resta només hi afegeixen articles.
+    (draft.length && data.me?.admin ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
     '</article>';
 }
 
