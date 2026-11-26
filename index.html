@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.47.0">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.47.0">
+<link rel="icon" type="image/png" href="./icon.png?v=1.48.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.48.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -165,6 +165,8 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .article-lookup label{flex:1 1 auto;min-width:0}
 .article-lookup button[hidden]{display:none}
 .article-lookup button{min-height:46px}
+/* Ull «Només la comanda» a la dreta de la cerca: quadrat, només la icona. */
+.article-lookup .lookup-eye{flex:0 0 46px;width:46px;padding:0;justify-content:center;font-size:20px}
 
 .catalog-management{margin-bottom:10px}
 .article-merge-choice{display:flex;align-items:center;gap:5px;min-height:44px}
@@ -276,13 +278,28 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
-.order-day{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
-.order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
-.order-day-head strong{font-size:17px}
-.order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
-.order-entry{padding:10px 12px;border-top:1px solid var(--border)}
-.order-day-head+.order-entry,.order-day-head+.swipe>.order-entry{border-top:0}
-.order-entry>.actions{margin-top:8px}
+/* Historial: mateix estil que les partides i l'inventari de GestoStock. Una fila d'una línia per comanda
+   («hora · detalls», estat a la dreta); la comanda oberta i el seu detall queden junts sobre fons destacat. */
+.history-day h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.history-day h3 .meta{font-weight:400;font-size:13px}
+.history-order{border-top:1px solid var(--border);background:var(--surface)}
+.history-day>.swipe:last-child>.history-order{border-radius:0 0 11px 11px}
+.history-order.is-open{background:var(--soft);box-shadow:inset 4px 0 0 var(--ln)}
+.history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;padding-right:10px}
+.history-open{display:block;width:100%;min-width:0;min-height:44px;border:0;border-radius:0;background:transparent;color:var(--tx);padding:6px 4px 6px 12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400;font-size:16px;box-shadow:none}
+.history-open:not(:disabled):hover{background:transparent;color:var(--tx);box-shadow:none}
+.history-open::before{content:'▸ ';color:var(--mu)}
+.history-open[aria-expanded=true]::before{content:'▾ '}
+.history-open b{font-weight:650}
+.history-open .meta{font-size:14px}
+.history-row .order-state{margin:0;white-space:nowrap}
+.history-detail{padding:0 12px 12px}
+.history-detail>.actions{margin-top:0}
+.history-supplier{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.history-supplier-head{display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}
+.history-supplier-head b{font-size:16px}
+.history-supplier-head .order-state{margin:0}
+.history-supplier>.actions{margin-top:8px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
@@ -313,6 +330,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Avís per activar les notificacions (només l'administrador principal) */
 .push-notice{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--draft-highlight);font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .push-notice button{min-height:36px;padding-block:2px}
+@media(max-width:480px){.article-lookup .lookup-eye{flex-basis:42px;width:42px;grid-column:auto;justify-self:auto}}
 
 .worker-profiles .worker-profile-item{border-top:1px solid var(--border);padding:10px 0}
 .worker-profile-item>summary,.worker-profile-inactive>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -395,12 +413,12 @@ label.req-mark::after{margin-left:0}
 .topbar .entorn-proves{color:var(--red);letter-spacing:.04em}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="gesto-version" content="1.47.0">
+<meta name="gesto-version" content="1.48.0">
 </head>
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.47.0<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.48.0<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -1978,7 +1996,10 @@ function listFilters(mode) {
 function listLookup(mode) {
   return '<div class="order-lookup"><form class="article-lookup" data-list-lookup="'+mode+'">'+
     '<label>Cerca o crea un article<input id="'+mode+'-search" data-list-search="'+mode+'" name="articleName" placeholder="Cerca pel nom" type="search" enterkeyhint="done" maxlength="120" autocomplete="off" value="'+escape(listState[mode].search)+'"></label>'+
-    '<button type="submit" class="primary" data-list-create="'+mode+'"'+(canCreateSearched(mode) ? '' : ' hidden')+'>Crea l’article</button></form></div>';
+    '<button type="submit" class="primary" data-list-create="'+mode+'"'+(canCreateSearched(mode) ? '' : ' hidden')+'>Crea l’article</button>'+
+    // Nova comanda: l'ull («Només la comanda»), petit i sense text, a la dreta de la cerca; sempre visible.
+    (mode === 'order' ? '<button type="button" id="order-visibility" class="list-mode lookup-eye" aria-pressed="'+onlyOrdered+'" aria-label="Només la comanda" title="Només la comanda"><span aria-hidden="true">👁︎</span></button>' : '')+
+    '</form></div>';
 }
 
 // El botó «Crea l'article» només surt quan el nom buscat no existeix.
@@ -2061,9 +2082,8 @@ function matchesArticleName(article, query, exact = false) {
 function order() {
   const draft = data.draft.lines;
   return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order','')+
-    // «Només la comanda» i «Replega-ho tot», l'un al costat de l'altre a la mateixa fila.
     pushNotice()+
-    listTools('order','<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+'<div id="list-order">'+articleList('order')+'</div>'+
+    listTools('order')+'<div id="list-order">'+articleList('order')+'</div>'+
     // Només els administradors envien la comanda als proveïdors; la resta només hi afegeixen articles.
     (draft.length && data.me?.admin ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
     '</article>';
@@ -2422,21 +2442,27 @@ function history() {
   const days = Map.groupBy(orders,([, lines]) => orderDayKey(lines[0].created_at));
   return '<article class="card main-card"><h2>Historial de comandes</h2>'+toggle+
     (orders.length ? '<p class="meta">Llisca una comanda cap a l’esquerra per eliminar-la. Es pot recuperar des de la Paperera durant 30 dies.</p>' : '')+
-    ([...days].map(([key, dayOrders]) => '<section class="order-day"><div class="order-day-head"><div><strong>'+escape(orderDayTitle(key))+'</strong>'+
-      '<div class="meta">'+escape(orderDayDate(key))+'</div></div><span class="meta">'+dayOrders.length+' '+(dayOrders.length === 1 ? 'comanda' : 'comandes')+'</span></div>'+
+    ([...days].map(([key, dayOrders]) => '<section class="order-category history-day"><h3><span>'+escape(orderDayTitle(key))+
+      ' <span class="meta">· '+escape(orderDayDate(key))+'</span></span><span class="meta">'+dayOrders.length+' '+(dayOrders.length === 1 ? 'comanda' : 'comandes')+'</span></h3>'+
       dayOrders.map(([id, lines]) => {
+      // Mateix estil que les partides i l'inventari de GestoStock: una fila d'una línia («hora · detalls») amb l'estat a la dreta;
+      // en tocar-la, s'obre a sota (fons destacat) amb els botons de la comanda i un requadre per proveïdor.
       const groups = Map.groupBy(lines,line => line.supplier_id);
       const sent = [...groups.keys()].filter(supplier => sentInfo(id,supplier)).length;
       const done = sent === groups.size;
-      const state = done ? '<span class="order-state is-sent">✓ Enviada</span>' :
-        '<span class="order-state">Pendent d’enviar'+(sent ? ' · '+sent+' de '+groups.size+' enviats' : '')+'</span>';
+      const stateLabel = done ? '✓ Enviada' : sent ? sent+' de '+groups.size+' enviats' : 'Pendent';
       const mine = lines[0].author_email === me;
-      return swipeOpen('order:'+id,true,false)+'<div class="order-entry swipe-row"><div><strong>'+escape(orderDayShort(key))+' · '+escape(orderTimeFormat.format(new Date(lines[0].created_at)))+'</strong> '+state+'<div class="meta">'+
-        lines.length+' '+(lines.length === 1 ? 'línia' : 'línies')+' · '+groups.size+' '+(groups.size === 1 ? 'proveïdor' : 'proveïdors')+
-        '</div>'+(mine ? '' : '<div class="meta">Feta per '+escape(authorName(lines[0].author_email))+'</div>')+'</div>'+
-        '<div class="actions"><button data-order="'+escape(id)+'" aria-expanded="'+(id === openOrder)+'">'+(id === openOrder ? 'Amaga' : 'Mostra els missatges')+'</button>'+
-        (data.permissions?.order !== false ? '<button data-restore-order="'+escape(id)+'">Recupera per editar</button>' : '')+'</div>'+
-        (id === openOrder ? [...groups.values()].map(messageCard).join('') : '')+'</div></div>';
+      const open = id === openOrder;
+      const time = orderTimeFormat.format(new Date(lines[0].created_at));
+      const meta = lines.length+' '+(lines.length === 1 ? 'línia' : 'línies')+' · '+groups.size+' '+(groups.size === 1 ? 'proveïdor' : 'proveïdors')+
+        (mine ? '' : ' · '+authorName(lines[0].author_email));
+      const restore = data.permissions?.order !== false
+        ? '<div class="actions"><button data-restore-order="'+escape(id)+'">'+(groups.size > 1 ? 'Recupera-ho tot' : 'Recupera per editar')+'</button></div>' : '';
+      return swipeOpen('order:'+id,true,false)+'<div class="history-order swipe-row'+(open ? ' is-open' : '')+'">'+
+        '<div class="history-row"><button type="button" class="history-open" data-order="'+escape(id)+'" aria-expanded="'+open+'" title="'+escape(time+' · '+meta)+'">'+
+        '<b>'+escape(time)+'</b><span class="meta"> · '+escape(meta)+'</span></button>'+
+        '<span class="order-state'+(done ? ' is-sent' : '')+'">'+escape(stateLabel)+'</span></div>'+
+        (open ? '<div class="history-detail">'+restore+[...groups.values()].map(messageCard).join('')+'</div>' : '')+'</div></div>';
     }).join('')+'</section>').join('') || empty(all.size ? 'No has fet cap comanda.' : 'Encara no hi ha comandes desades.'))+'</article>';
 }
 
@@ -2560,10 +2586,6 @@ function orderDayTitle(key) {
 function orderDayDate(key) {
   return orderDayFormat.format(new Date(key+'T12:00:00Z'));
 }
-function orderDayShort(key) {
-  const [, month, day] = key.split('-');
-  return Number(day)+'/'+Number(month);
-}
 
 function contactControls() {
   return '<div class="contact-actions actions">'+
@@ -2686,13 +2708,19 @@ function messageCard(lines) {
     '<button class="primary" type="submit">Obre WhatsApp</button></form></details>' :
     '<a class="button whatsapp" href="'+escape(whatsappLink(phone,message))+'">Obre WhatsApp</a>';
   const sent = sentInfo(supplier.order_id,supplier.supplier_id);
-  const sentControls = sent
-    ? '<div class="row"><span class="order-state is-sent">✓ Enviat el '+escape(dateFormat.format(new Date(sent.sent_at)))+'</span>'+
-      '<button data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="0">Desmarca</button></div>'
-    : '<div class="row"><span class="order-state">Pendent d’enviar</span>'+
-      '<button class="primary" data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="1">Marca com a enviat</button></div>';
-  return '<section class="item"><h3>'+escape(supplier.supplier)+'</h3>'+sentControls+'<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
-    '<div class="actions"><button data-copy>Copia el missatge</button>'+
+  const state = sent
+    ? '<span class="order-state is-sent">✓ Enviat el '+escape(dateFormat.format(new Date(sent.sent_at)))+'</span>'
+    : '<span class="order-state">Pendent d’enviar</span>';
+  const sentButton = sent
+    ? '<button data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="0">Desmarca</button>'
+    : '<button class="primary" data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="1">Marca com a enviat</button>';
+  // Comanda amb diversos proveïdors: cada proveïdor es pot recuperar per separat.
+  const several = new Set(data.lines.filter(line => line.order_id === supplier.order_id).map(line => line.supplier_id)).size > 1;
+  const restore = several && data.permissions?.order !== false
+    ? '<button data-restore-order="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'">Recupera per editar</button>' : '';
+  return '<section class="history-supplier"><div class="history-supplier-head"><b>'+escape(supplier.supplier)+'</b>'+state+'</div>'+
+    '<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
+    '<div class="actions">'+sentButton+'<button data-copy>Copia el missatge</button>'+restore+
     (!phone && current ? '<a href="'+escape(whatsappLink('',message))+'">Tria dins de WhatsApp</a>' : '')+'</div>'+chooser+'</section>';
 }
 
@@ -3364,9 +3392,10 @@ document.addEventListener('click',async event => {
       if (error.name !== 'AbortError') notify('No s’ha pogut obrir l’agenda. Pots escriure el número al formulari.',true);
     }
   } else if (button.id === 'order-visibility') {
+    // Només es refà la llista: així la cerca i els filtres es queden com estaven.
     onlyOrdered = !onlyOrdered;
-    render();
-    document.querySelector('#order-visibility').focus();
+    button.setAttribute('aria-pressed',String(onlyOrdered));
+    refreshList('order');
   } else if (target.step) {
     const position = Number(target.stepIndex);
     const lines = data.draft.lines.map((line,i) => i === position ? {...line,quantity:Math.round((line.quantity+Number(target.step))*1000)/1000} : line)
@@ -3487,17 +3516,23 @@ document.addEventListener('click',async event => {
       () => markSent ? 'Missatge marcat com a enviat.' : 'Missatge marcat com a pendent.');
   } else if (target.restoreOrder) {
     const id = target.restoreOrder;
-    const lines = data.lines.filter(line => line.order_id === id);
+    // Amb data-supplier, només els articles d'aquest proveïdor; la resta de la comanda es queda a l'historial.
+    const only = target.supplier || '';
+    const lines = data.lines.filter(line => line.order_id === id && (!only || line.supplier_id === only));
     if (!lines.length) return;
+    const rest = only ? new Set(data.lines.filter(line => line.order_id === id && line.supplier_id !== only).map(line => line.supplier_id)).size : 0;
     await flushDraft();
     const pending = data.draft.lines.length;
     const sent = new Set(lines.map(line => line.supplier_id).filter(supplier => sentInfo(id,supplier))).size;
-    const question = 'Vols passar els '+lines.length+(lines.length === 1 ? ' article' : ' articles')+' d’aquesta comanda a «Nova comanda» per editar-la?'+
+    const question = (only
+        ? 'Vols passar '+(lines.length === 1 ? 'l’article' : 'els '+lines.length+' articles')+' de '+lines[0].supplier+' a «Nova comanda» per editar-'+(lines.length === 1 ? 'lo' : 'los')+'?'
+        : 'Vols passar els '+lines.length+(lines.length === 1 ? ' article' : ' articles')+' d’aquesta comanda a «Nova comanda» per editar-la?')+
       (pending ? ' S’afegiran '+(pending === 1 ? 'a l’article' : 'als '+pending+' articles')+' que ja hi tens.' : '')+
       (sent ? ' Ja n’havies enviat '+(sent === 1 ? '1 missatge' : sent+' missatges')+'.' : '')+
-      ' La comanda i els seus missatges s’eliminaran de l’historial.';
+      (only ? ' El missatge de '+lines[0].supplier+' s’eliminarà de l’historial'+(rest ? '; els dels altres proveïdors s’hi queden.' : '.')
+        : ' La comanda i els seus missatges s’eliminaran de l’historial.');
     if (!window.confirm(question)) return;
-    await save({action:'restoreOrder',id,revision:data.draft.revision},() => {
+    await save({action:'restoreOrder',id,...(only ? {supplier:only} : {}),revision:data.draft.revision},() => {
       if (openOrder === id) openOrder = '';
       onlyOrdered = true;
       orderCategory = '';
