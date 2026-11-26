@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.40.1">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.40.1">
+<link rel="icon" type="image/png" href="./icon.png?v=1.41.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.41.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>:root{color-scheme:light;--bg:#f7f8fd;--tx:#28377e;--mu:#566598;--ln:#303f91;--surface:#fff;--soft:#f0f2fc;--border:#d4daf1;--field:#b6bfdf;--on:#fff;--red:#b42318;--green:#17734a}
 :root[data-theme=dark]{color-scheme:dark;--bg:#10152c;--tx:#e5e9ff;--mu:#adb8e5;--ln:#a1afff;--surface:#1b2447;--soft:#232f59;--border:#425080;--field:#6371a0;--on:#10152c;--red:#ff9992;--green:#84dbab}
@@ -36,9 +36,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .item:last-child{padding-bottom:0}
 .meta{color:var(--mu);font-size:14px}
 .error,.remove{color:var(--red)}
-#status:empty{display:none}
-#status{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:max-content;max-width:min(600px,calc(100% - 24px));margin:0;padding:12px 16px;border-radius:12px;background:var(--surface);color:var(--tx);border:1px solid var(--border);box-shadow:0 8px 28px #11183140;font-weight:600;cursor:pointer}
-#status.error{color:var(--red);border-color:var(--red)}
 .whatsapp{color:var(--green);border-color:var(--green)}
 @media(max-width:430px){main{padding:14px 12px 28px}.card{padding:15px}h1{font-size:24px}nav button{padding:8px 11px}}
 .order-lookup{margin-bottom:12px}
@@ -277,19 +274,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .supplier-choice{display:grid;gap:8px;margin-top:10px}
 .supplier-choice button{width:100%;justify-content:flex-start;min-height:48px}
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
-.swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
-.swipe>.swipe-bg{position:absolute;inset:0;display:none;align-items:center;padding:0 18px;color:var(--on)}
-.swipe.left>.swipe-bg{display:flex;justify-content:flex-end;background:var(--red)}
-.swipe.right>.swipe-bg{display:flex;justify-content:flex-start;background:var(--ln)}
-.swipe>.swipe-bg svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.swipe>.swipe-row{position:relative}
-#status .undo-button{min-height:32px;margin-inline-start:10px;padding:4px 12px;font-size:14px}
 /* Paperera */
-.trash-list{margin-top:10px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
-.trash-list>.meta{padding:12px;margin:0}
-.trash-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:44px;justify-content:center}
-.swipe+.swipe>.trash-row{border-top:1px solid var(--border)}
-.trash-row strong,.trash-row .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .swipe.dragging{position:relative;z-index:2;overflow:visible}
 .swipe.dragging>.catalog-row{box-shadow:0 6px 18px rgba(0,0,0,.18);border-radius:10px;opacity:.95}
 .swipe>.item.swipe-row{padding-bottom:8px}
@@ -325,6 +310,26 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .main-card .card h3:first-child{margin-top:0}
 .main-card .card h2{font-size:17px;margin:0 0 10px}
 .main-card>.card:first-of-type{margin-top:14px}
+
+/* Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). */
+#status:empty{display:none}
+#status{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:max-content;max-width:min(600px,calc(100% - 24px));margin:0;padding:12px 16px;border-radius:12px;background:var(--surface);color:var(--tx);border:1px solid var(--border);box-shadow:0 8px 28px #11183140;font-weight:600;cursor:pointer}
+#status.error{color:var(--red);border-color:var(--red)}
+
+/* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
+.swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.swipe>.swipe-bg{position:absolute;inset:0;display:none;align-items:center;padding:0 18px;color:var(--on)}
+.swipe.left>.swipe-bg{display:flex;justify-content:flex-end;background:var(--red)}
+.swipe.right>.swipe-bg{display:flex;justify-content:flex-start;background:var(--ln)}
+.swipe>.swipe-bg svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.swipe>.swipe-row{position:relative}
+#status .undo-button{min-height:32px;margin-inline-start:10px;padding:4px 12px;font-size:14px}
+/* Paperera */
+.trash-list{margin-top:10px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.trash-list>.meta{padding:12px;margin:0}
+.trash-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:44px;justify-content:center}
+.swipe+.swipe>.trash-row{border-top:1px solid var(--border)}
+.trash-row strong,.trash-row .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Capçalera comuna de les apps Gesto: nom, versió, ☰ Menú i ↪︎ Sortir (ESTIL.md, «Capçalera de l'app» i «Menú»).
    Font única: si canvies alguna cosa aquí, canvia a totes les apps. Va després del CSS de cada app. */
@@ -365,7 +370,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.40.1<span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.41.0<span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -463,6 +468,181 @@ function gestoHeader() {
     tabs: document.getElementById('tabs')
   };
   return gestoHeader.ready;
+}
+
+// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoTips, GestoAdmin i GestoStock.
+// Funciona sobre l'element #status: els d'èxit marxen sols als 6 segons; els d'error (classe .error) i els importants (classe .keep) es queden fins que es premen.
+// Si hi ha un <dialog> obert, l'avís s'hi mou perquè no quedi tapat. Els camps obligatoris buits avisen aquí, sense la bombolla del navegador.
+function setupNotices() {
+  const status = document.querySelector('#status');
+  if (!status || status.dataset.notices) return;
+  status.dataset.notices = '1';
+  let timer = 0;
+  // Lloc habitual de l'avís: #workspace (o el <body> si l'app no en té).
+  const home = () => document.querySelector('#workspace') || document.body;
+  const place = () => {
+    const parent = document.querySelector('dialog[open]') || home();
+    if (status.parentElement !== parent) parent.append(status);
+  };
+  new MutationObserver(() => {
+    clearTimeout(timer);
+    const stays = status.classList.contains('error') || status.classList.contains('keep');
+    const title = status.textContent.trim() && stays ? 'Prem per tancar l’avís' : '';
+    if (status.title !== title) status.title = title;
+    if (!status.textContent.trim()) return;
+    place();
+    if (!stays && status.textContent !== 'Desant…') timer = setTimeout(() => { status.textContent = ''; },6000);
+  }).observe(status,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
+  status.addEventListener('click',event => { if (!event.target.closest('[data-undo]')) status.textContent = ''; });
+  document.addEventListener('close',() => {
+    if (status.parentElement !== home()) home().append(status);
+  },true);
+  let invalidShown = false;
+  document.addEventListener('invalid',event => {
+    event.preventDefault();
+    if (invalidShown) return;
+    invalidShown = true;
+    setTimeout(() => { invalidShown = false; },0);
+    const field = event.target;
+    // Nom del camp: l'etiqueta que l'envolta, la <label for> o la que té just abans; si no, aria-label o placeholder.
+    const previous = field.previousElementSibling;
+    const outer = field.closest('label')?.childNodes[0]?.textContent?.trim();
+    const linked = (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
+    const label = outer || linked?.textContent?.trim() || field.getAttribute('aria-label') || field.placeholder || '';
+    field.focus();
+    status.classList.add('error');
+    status.textContent = field.validity.valueMissing
+      ? (field.tagName === 'SELECT' ? 'Tria una opció a «'+label+'».' : 'Omple el camp «'+label+'».')
+      : (label ? 'Revisa el camp «'+label+'». ' : '')+field.validationMessage;
+  },true);
+}
+setupNotices();
+
+// Lliscar per eliminar o arxivar i avís amb «Desfés» (ESTIL.md), comú a GestoCatalog, GestoTips, GestoAdmin i GestoStock.
+// Fila lliscable: swipeOpen(clau, es pot eliminar, es pot arxivar/restaurar, icona de la dreta) + fila amb la classe «swipe-row» + '</div>'.
+// setupSwipe(acció, ocupat): acció(clau, 'left'|'right') retorna (o promet) true si s'ha fet; si no, la fila torna al seu lloc.
+const swipeIcons = {
+  left:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+  archive:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M10 13h4"/></svg>',
+  restore:'<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v5h5"/></svg>'
+};
+function swipeOpen(key, left, right, rightIcon = 'archive') {
+  const attr = String(key).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  return '<div class="swipe" data-swipe="'+attr+'"'+(left ? ' data-left="1"' : '')+(right ? ' data-right="1" data-right-icon="'+rightIcon+'"' : '')+'><div class="swipe-bg" aria-hidden="true"></div>';
+}
+// Avís amb el botó «Desfés» (dura els 6 segons dels avisos d'èxit; si és d'error, es queda fins que es prem).
+function showUndo(message, undo, error = false) {
+  const status = document.querySelector('#status');
+  status.classList.remove('keep');
+  status.classList.toggle('error',error);
+  status.textContent = message;
+  if (!undo) return;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'undo-button';
+  button.dataset.undo = '';
+  button.textContent = 'Desfés';
+  button.addEventListener('click',() => { status.textContent = ''; undo(); },{once:true});
+  status.append(' ',button);
+}
+function setupSwipe(action, isBusy = () => false) {
+  let touch = null;
+  let wheel = null;
+  let quietUntil = 0;
+  let blockClick = 0;
+  function backgroundOf(element) {
+    for (let node = element; node && node !== document.documentElement; node = node.parentElement) {
+      const color = getComputedStyle(node).backgroundColor;
+      if (color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)') return color;
+    }
+    return getComputedStyle(document.body).backgroundColor;
+  }
+  function begin(wrap) {
+    const row = wrap.querySelector('.swipe-row');
+    if (getComputedStyle(row).backgroundColor === 'rgba(0, 0, 0, 0)') row.style.background = backgroundOf(wrap.parentElement);
+    row.style.transition = 'none';
+    return {wrap,row,dx:0,width:wrap.offsetWidth || 1};
+  }
+  function move(state, dx) {
+    if (dx < 0 && !state.wrap.dataset.left) dx = 0;
+    if (dx > 0 && !state.wrap.dataset.right) dx = 0;
+    state.dx = dx;
+    state.row.style.transform = dx ? 'translateX('+dx+'px)' : '';
+    state.wrap.classList.toggle('left',dx < 0);
+    state.wrap.classList.toggle('right',dx > 0);
+    const side = dx < 0 ? 'l' : dx > 0 ? 'r' : '';
+    const bg = state.wrap.firstElementChild;
+    if (bg.dataset.icon !== side) {
+      bg.dataset.icon = side;
+      bg.innerHTML = side === 'l' ? swipeIcons.left : side === 'r' ? swipeIcons[state.wrap.dataset.rightIcon] || swipeIcons.archive : '';
+    }
+  }
+  function reset(state) {
+    state.row.style.transition = 'transform .2s';
+    state.row.style.transform = '';
+    setTimeout(() => { state.wrap.classList.remove('left','right'); state.row.style.background = ''; state.row.style.transition = ''; },200);
+  }
+  function end(state) {
+    quietUntil = Date.now()+400;
+    const dir = state.dx <= -state.width/2 ? 'left' : state.dx >= state.width/2 ? 'right' : '';
+    if (!dir) { reset(state); return; }
+    state.row.style.transition = 'transform .18s';
+    state.row.style.transform = 'translateX('+(dir === 'left' ? -state.width : state.width)+'px)';
+    setTimeout(async () => {
+      let ok = false;
+      try { ok = await action(state.wrap.dataset.swipe,dir); } catch { ok = false; }
+      // Si no s'ha pogut fer, la fila torna al seu lloc; l'avís d'error n'explica el motiu.
+      if (!ok && state.wrap.isConnected) reset(state);
+    },180);
+  }
+  // Dit o ratolí: arrossegar la fila.
+  document.addEventListener('pointerdown',event => {
+    if (event.button > 0) return;
+    const wrap = event.target.closest('.swipe');
+    // Els camps i el que porta data-no-swipe (per exemple, la nansa per ordenar) no fan lliscar la fila.
+    if (!wrap || event.target.closest('input,select,textarea,[data-no-swipe]')) return;
+    touch = {wrap,x:event.clientX,y:event.clientY,id:event.pointerId,state:null};
+  });
+  document.addEventListener('pointermove',event => {
+    if (!touch || event.pointerId !== touch.id) return;
+    const dx = event.clientX-touch.x;
+    const dy = event.clientY-touch.y;
+    if (!touch.state) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) >= Math.abs(dx) || isBusy()) { touch = null; return; }
+      touch.state = begin(touch.wrap);
+      try { touch.wrap.setPointerCapture(event.pointerId); } catch { /* sense captura */ }
+    }
+    event.preventDefault();
+    move(touch.state,dx);
+  },{passive:false});
+  function release(event) {
+    if (!touch || event.pointerId !== touch.id) return;
+    const state = touch.state;
+    touch = null;
+    if (!state) return;
+    blockClick = Date.now();
+    if (event.type === 'pointercancel') reset(state); else end(state);
+  }
+  document.addEventListener('pointerup',release);
+  document.addEventListener('pointercancel',release);
+  // Després d'arrossegar, no s'obre la fila.
+  document.addEventListener('click',event => {
+    if (Date.now()-blockClick < 400 && event.target.closest('.swipe')) { event.preventDefault(); event.stopImmediatePropagation(); }
+  },true);
+  // Trackpad: lliscar amb dos dits.
+  document.addEventListener('wheel',event => {
+    const wrap = event.target.closest('.swipe');
+    if (!wheel) {
+      if (!wrap || isBusy() || Date.now() < quietUntil || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      wheel = {wrap,state:begin(wrap),dx:0};
+    } else if (wheel.wrap !== wrap && !wheel.wrap.contains(event.target)) return;
+    event.preventDefault();
+    wheel.dx -= event.deltaX;
+    move(wheel.state,wheel.dx);
+    clearTimeout(wheel.timer);
+    wheel.timer = setTimeout(() => { const state = wheel.state; wheel = null; end(state); },120);
+  },{passive:false});
 }
 
 const pdfLibrary = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/legacy/build/';
@@ -1051,34 +1231,17 @@ async function api(body) {
   return result;
 }
 
-// Els avisos surten flotant a baix de la pantalla, sempre visibles on s'està treballant.
-// Si hi ha una pantalla emergent oberta, l'avís es mostra a sobre d'ella. Els d'èxit marxen sols; els d'error, en prémer-los.
-let notifyTimer = 0;
-let undoAction = null;
+// Avisos: shared/notices.js (comú a totes les apps Gesto). Surten flotant a baix i, si hi ha una fitxa oberta, a sobre d'ella.
+// Els d'èxit marxen sols; els d'error i els importants (keep) es queden fins que es premen.
 function notify(message, error = false, keep = false) {
-  clearTimeout(notifyTimer);
-  undoAction = null;
-  const dialog = document.querySelector('dialog[open]');
-  const home = document.querySelector('#workspace');
-  const parent = dialog || home;
-  if (parent && status.parentElement !== parent) parent.append(status);
-  status.textContent = message;
   status.classList.toggle('error',error);
-  status.title = message ? (error || keep ? 'Prem per tancar l’avís' : '') : '';
-  if (message && !error && !keep) notifyTimer = setTimeout(() => { status.textContent = ''; },6000);
+  status.classList.toggle('keep',keep);
+  status.textContent = message;
 }
-status.addEventListener('click',event => { if (!event.target.closest('[data-undo]')) notify(''); });
-// Avís amb el botó «Desfés» (ESTIL.md): dura el mateix que els avisos d'èxit.
+// Avís amb el botó «Desfés» (showUndo de shared/swipe.js). Si s'està desant una altra cosa, Desfés no fa res.
 function notifyUndo(message, undo, error = false) {
-  notify(message,error);
-  if (!message || !undo) return;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'undo-button';
-  button.dataset.undo = '';
-  button.textContent = 'Desfés';
-  status.append(' ',button);
-  undoAction = undo;
+  if (!message || !undo) { notify(message,error); return; }
+  showUndo(message,() => busy ? undefined : undo(),error);
 }
 // Desa un canvi i, si va bé, ofereix «Desfés». Retorna si s'ha desat.
 async function saveWithUndo(payload, done, button, message, undo) {
@@ -1088,27 +1251,6 @@ async function saveWithUndo(payload, done, button, message, undo) {
   });
   return Boolean(result);
 }
-// Els camps obligatoris buits també avisen amb el mateix missatge flotant (en lloc de la bombolla del navegador).
-let invalidShown = false;
-document.addEventListener('invalid',event => {
-  event.preventDefault();
-  if (invalidShown) return;
-  invalidShown = true;
-  setTimeout(() => { invalidShown = false; },0);
-  const field = event.target;
-  const label = field.closest('label')?.childNodes[0]?.textContent?.trim() || field.getAttribute('aria-label') || '';
-  const message = field.validity.valueMissing
-    ? (field.tagName === 'SELECT' ? 'Tria una opció a «'+label+'».' : 'Omple el camp «'+label+'».')
-    : (label ? 'Revisa el camp «'+label+'». ' : '')+field.validationMessage;
-  field.focus();
-  notify(message,true);
-},true);
-document.addEventListener('close',() => {
-  // En tancar una pantalla emergent, l'avís torna a la pantalla principal.
-  const home = document.querySelector('#workspace');
-  if (home && status.parentElement !== home) home.append(status);
-},true);
-
 async function save(payload, done, button, success = () => 'Canvis desats.', afterRender) {
   if (busy) return;
   busy = true;
@@ -1500,7 +1642,7 @@ function catalogRows() {
     // Categories: la nansa (tres ratlles) es prem i s'arrossega per canviar-ne l'ordre
     // (el de les llistes, els filtres i el missatge als proveïdors). Amb el teclat: fletxes amunt i avall.
     const move = section === 'categories'
-      ? '<button type="button" class="drag-handle" data-category-drag="'+escape(item.id)+'" title="Arrossega per canviar l’ordre" aria-label="Mou '+escape(item.name)+' (fletxes amunt i avall)">'+dragIcon+'</button>'
+      ? '<button type="button" class="drag-handle" data-no-swipe data-category-drag="'+escape(item.id)+'" title="Arrossega per canviar l’ordre" aria-label="Mou '+escape(item.name)+' (fletxes amunt i avall)">'+dragIcon+'</button>'
       : '';
     // Lliscar cap a l'esquerra elimina (va a la Paperera).
     return swipeOpen(catalogKind[section]+':'+item.id,true,false)+'<div class="catalog-row swipe-row'+(move ? ' with-move' : '')+(item.depth ? ' subcategory' : '')+'"'+(move ? ' data-category-row="'+escape(item.id)+'"' : '')+'>'+move+
@@ -2002,11 +2144,7 @@ function history() {
 // Cap a l'esquerra = eliminar (va a la Paperera 30 dies). Cap a la dreta = arxivar (o restaurar). Sense confirmació i amb Desfés.
 const trashDays = 30;
 const dayMs = 864e5;
-// Fila lliscable: swipeOpen(clau, es pot eliminar, es pot arxivar/restaurar, icona de la dreta) + fila amb la classe «swipe-row» + '</div>'.
-function swipeOpen(key, left, right, rightIcon = 'archive') {
-  return '<div class="swipe" data-swipe="'+escape(key)+'"'+(left ? ' data-left="1"' : '')+(right ? ' data-right="1" data-right-icon="'+rightIcon+'"' : '')+'><div class="swipe-bg" aria-hidden="true"></div>';
-}
-// Articles (pantalles Articles i Nova comanda): només si es té el permís «Articles».
+// Fila lliscable: swipeOpen de shared/swipe.js.
 function articleSwipe(article, rows) {
   if (data.permissions && !data.permissions.articles) return rows;
   return swipeOpen('article:'+article.id,true,true,article.archived ? 'restore' : 'archive')+'<div class="swipe-row">'+rows+'</div></div>';
@@ -2104,102 +2242,8 @@ async function swipeAction(key, dir) {
   }
   return false;
 }
-(function setupSwipe() {
-  const icons = {left:trashIcon,archive:archiveIcon,restore:restoreIcon};
-  let touch = null;
-  let wheel = null;
-  let quietUntil = 0;
-  let blockClick = 0;
-  function backgroundOf(element) {
-    for (let node = element; node && node !== document.documentElement; node = node.parentElement) {
-      const color = getComputedStyle(node).backgroundColor;
-      if (color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)') return color;
-    }
-    return getComputedStyle(document.body).backgroundColor;
-  }
-  function begin(wrap) {
-    const row = wrap.querySelector('.swipe-row');
-    row.style.background = backgroundOf(wrap.parentElement);
-    row.style.transition = 'none';
-    return {wrap,row,dx:0,width:wrap.offsetWidth || 1};
-  }
-  function move(state, dx) {
-    if (dx < 0 && !state.wrap.dataset.left) dx = 0;
-    if (dx > 0 && !state.wrap.dataset.right) dx = 0;
-    state.dx = dx;
-    state.row.style.transform = dx ? 'translateX('+dx+'px)' : '';
-    state.wrap.classList.toggle('left',dx < 0);
-    state.wrap.classList.toggle('right',dx > 0);
-    const icon = dx < 0 ? icons.left : dx > 0 ? icons[state.wrap.dataset.rightIcon] || icons.archive : '';
-    const bg = state.wrap.firstElementChild;
-    if (bg.dataset.icon !== String(dx < 0 ? 'l' : dx > 0 ? 'r' : '')) { bg.dataset.icon = dx < 0 ? 'l' : dx > 0 ? 'r' : ''; bg.innerHTML = icon; }
-  }
-  function reset(state) {
-    state.row.style.transition = 'transform .2s';
-    state.row.style.transform = '';
-    setTimeout(() => { state.wrap.classList.remove('left','right'); state.row.style.background = ''; state.row.style.transition = ''; },200);
-  }
-  function end(state) {
-    quietUntil = Date.now()+400;
-    const dir = state.dx <= -state.width/2 ? 'left' : state.dx >= state.width/2 ? 'right' : '';
-    if (!dir) { reset(state); return; }
-    state.row.style.transition = 'transform .18s';
-    state.row.style.transform = 'translateX('+(dir === 'left' ? -state.width : state.width)+'px)';
-    setTimeout(async () => {
-      let ok = false;
-      try { ok = await swipeAction(state.wrap.dataset.swipe,dir); } catch { ok = false; }
-      // Si no s'ha pogut fer (sense permís, en ús…), la fila torna al seu lloc; l'avís d'error n'explica el motiu.
-      if (!ok && state.wrap.isConnected) reset(state);
-    },180);
-  }
-  // Dit o ratolí: arrossegar la fila.
-  document.addEventListener('pointerdown',event => {
-    if (event.button > 0) return;
-    const wrap = event.target.closest('.swipe');
-    if (!wrap || event.target.closest('input,select,textarea,[data-category-drag]')) return;
-    touch = {wrap,x:event.clientX,y:event.clientY,id:event.pointerId,state:null};
-  });
-  document.addEventListener('pointermove',event => {
-    if (!touch || event.pointerId !== touch.id) return;
-    const dx = event.clientX-touch.x;
-    const dy = event.clientY-touch.y;
-    if (!touch.state) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (Math.abs(dy) >= Math.abs(dx) || busy) { touch = null; return; }
-      touch.state = begin(touch.wrap);
-      try { touch.wrap.setPointerCapture(event.pointerId); } catch { /* sense captura */ }
-    }
-    event.preventDefault();
-    move(touch.state,dx);
-  },{passive:false});
-  function release(event) {
-    if (!touch || event.pointerId !== touch.id) return;
-    const state = touch.state;
-    touch = null;
-    if (!state) return;
-    blockClick = Date.now();
-    if (event.type === 'pointercancel') reset(state); else end(state);
-  }
-  document.addEventListener('pointerup',release);
-  document.addEventListener('pointercancel',release);
-  // Després d'arrossegar, no s'obre ni es marca la fila.
-  document.addEventListener('click',event => {
-    if (Date.now()-blockClick < 400 && event.target.closest('.swipe')) { event.preventDefault(); event.stopImmediatePropagation(); }
-  },true);
-  // Trackpad: lliscar amb dos dits.
-  document.addEventListener('wheel',event => {
-    const wrap = event.target.closest('.swipe');
-    if (!wheel) {
-      if (!wrap || busy || Date.now() < quietUntil || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
-      wheel = {wrap,state:begin(wrap),dx:0};
-    } else if (wheel.wrap !== wrap && !wheel.wrap.contains(event.target)) return;
-    event.preventDefault();
-    wheel.dx -= event.deltaX;
-    move(wheel.state,wheel.dx);
-    clearTimeout(wheel.timer);
-    wheel.timer = setTimeout(() => { const state = wheel.state; wheel = null; end(state); },120);
-  },{passive:false});
-})();
+// Lliscar: shared/swipe.js. Mentre es desa, no es pot lliscar.
+setupSwipe(swipeAction,() => busy);
 
 // Dia de la comanda a Barcelona (AAAA-MM-DD) i com es mostra.
 function orderDayKey(date) {
@@ -2888,9 +2932,7 @@ document.addEventListener('click',async event => {
   if (!button || button.id === 'theme' || !data || busy) return;
   const target = button.dataset;
   if (Object.hasOwn(target,'undo')) {
-    const undo = undoAction;
-    notify('');
-    if (undo) await undo();
+    // El botó «Desfés» ja el gestiona shared/swipe.js (showUndo).
   } else if (target.tab) {
     if (tabs.contains(button)) {
       setMenu(false);
